@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trelawney | 나의 우주 관측소 🔮</title>
+    <style>
+        :root {
+            --bg-color: #05070a;
+            --card-bg: #0f141d;
+            --accent: #7d5fff; /* 신비로운 보라/청록 포인트 */
+            --text-main: #e1e1e1;
+            --text-dim: #a0a0a0;
+        }
+
+        body { 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; padding: 20px; 
+            display: flex; justify-content: center;
+            background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #05070a 70%);
+        }
+
+        .container { width: 100%; max-width: 480px; }
+        
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { font-size: 2.2em; margin: 0; letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 15px rgba(125, 95, 255, 0.4); }
+        .tagline { font-size: 0.85em; color: var(--text-dim); margin-top: 10px; letter-spacing: 1px; }
+
+        .input-section { 
+            background: var(--card-bg); 
+            padding: 30px; border-radius: 24px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+        }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .input-field { display: flex; flex-direction: column; }
+        label { font-size: 0.75em; color: var(--text-dim); margin-bottom: 6px; padding-left: 4px; }
+        
+        input { 
+            background: #1a1f29; border: 1px solid rgba(255,255,255,0.1); 
+            color: white; padding: 12px; border-radius: 12px; font-size: 1em; text-align: center;
+        }
+        input:focus { outline: none; border-color: var(--accent); }
+
+        button { 
+            background: var(--accent); color: white; border: none; 
+            padding: 16px; border-radius: 14px; font-weight: 700; width: 100%; 
+            font-size: 1.1em; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(125, 95, 255, 0.2);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(125, 95, 255, 0.3); }
+
+        .result-card { 
+            background: var(--card-bg); padding: 24px; border-radius: 20px; 
+            margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.03);
+            animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .planet-info { display: flex; align-items: center; gap: 10px; }
+        .planet-name { font-size: 0.8em; color: var(--text-dim); font-weight: 500; }
+        .sign-tag { background: rgba(125, 95, 255, 0.15); color: var(--accent); padding: 4px 10px; border-radius: 8px; font-size: 0.75em; font-weight: 700; }
+        .reading-body { line-height: 1.7; font-size: 0.95em; color: #d0d0d0; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>TRELAWNEY</h1>
+        <div class="tagline">나의 우주, 우리 은하 관측소</div>
+    </header>
+
+    <div class="input-section">
+        <div class="input-grid">
+            <div class="input-field"><label>Year</label><input type="number" id="year" value="1990"></div>
+            <div class="input-field"><label>Month</label><input type="number" id="month" value="5"></div>
+            <div class="input-field"><label>Day</label><input type="number" id="day" value="27"></div>
+        </div>
+        <div class="input-grid">
+            <div class="input-field" style="grid-column: span 1.5;"><label>Hour (선택)</label><input type="number" id="hour" value="12"></div>
+            <div class="input-field" style="grid-column: span 1.5;"><label>Minute (선택)</label><input type="number" id="minute" value="0"></div>
+        </div>
+        <button onclick="observeUniverse()">운명의 차트 관측하기</button>
+    </div>
+
+    <div id="displayArea"></div>
+</div>
+
+<script>
+    const SIGN_KR = {"aries":"양자리","taurus":"황소자리","gemini":"쌍둥이자리","cancer":"게자리","leo":"사자자리","virgo":"처녀자리","libra":"천칭자리","scorpio":"전갈자리","sagittarius":"사수자리","capricorn":"염소자리","aquarius":"물병자리","pisces":"물고기자리"};
+    
+    // DB: 앞서 만든 84개 텍스트 중 핵심 내용을 포함 (지면 관계상 요약본, 실제 배포시 위에서 만든 전체 DB를 넣으세요)
+    const DB = {
+        sun: { 
+            gemini: "트렌드를 읽고 시스템을 설계하는 속도가 남다른 타고난 기획자! 복잡한 문제의 해결책을 찾을 때 쾌감을 느끼며, 재미가 없으면 이직을 고민하는 타입입니다.",
+            aries: "개척자의 기질을 타고났습니다. 남의 지시를 받기보다 내 프로젝트를 직접 이끌 때 가장 빛납니다.",
+            taurus: "안정적인 커리어와 확실한 보상을 추구합니다. 통장 잔고가 곧 당신의 멘탈 방어력입니다."
+            // ... 나머지 별자리 추가
+        },
+        moon: {
+            gemini: "감정도 논리적으로 설명되어야 안심합니다. 대화가 통하지 않는 연인과는 깊은 고립감을 느낄 수 있습니다."
+            // ... 나머지 별자리 추가
+        }
+        // mercury, venus, mars, jupiter, saturn...
+    };
+
+    function getSunSign(m, d) {
+        if ((m == 3 && d >= 21) || (m == 4 && d <= 19)) return "aries";
+        if ((m == 4 && d >= 20) || (m == 5 && d <= 20)) return "taurus";
+        if ((m == 5 && d >= 21) || (m == 6 && d <= 21)) return "gemini";
+        if ((m == 6 && d >= 22) || (m == 7 && d <= 22)) return "cancer";
+        if ((m == 7 && d >= 23) || (m == 8 && d <= 22)) return "leo";
+        if ((m == 8 && d >= 23) || (m == 9 && d <= 22)) return "virgo";
+        if ((m == 9 && d >= 23) || (m == 10 && d <= 22)) return "libra";
+        if ((m == 10 && d >= 23) || (m == 11 && d <= 21)) return "scorpio";
+        if ((m == 11 && d >= 22) || (m == 12 && d <= 21)) return "sagittarius";
+        if ((m == 12 && d >= 22) || (m == 1 && d <= 19)) return "capricorn";
+        if ((m == 1 && d >= 20) || (m == 2 && d <= 18)) return "aquarius";
+        return "pisces";
+    }
+
+    function observeUniverse() {
+        const y = document.getElementById('year').value;
+        const m = document.getElementById('month').value;
+        const d = document.getElementById('day').value;
+        
+        const area = document.getElementById('displayArea');
+        area.innerHTML = "<p style='text-align:center; color:var(--accent);'>별의 궤도를 추적 중입니다...</p>";
+
+        const sun = getSunSign(m, d);
+        const seed = parseInt(y) + parseInt(m) + parseInt(d);
+        const signs = ["aries","taurus","gemini","cancer","leo","virgo","libra","scorpio","sagittarius","capricorn","aquarius","pisces"];
+        
+        // 시드 기반 일관된 행성 매칭
+        const moon = signs[(seed + 1) % 12];
+        const mercury = signs[(seed + 2) % 12];
+        const venus = signs[(seed + 3) % 12];
+        const mars = signs[(seed + 4) % 12];
+        const jupiter = signs[(seed + 5) % 12];
+        const saturn = signs[(seed + 6) % 12];
+
+        setTimeout(() => {
+            const data = [
+                { cat: "커리어와 자아", emoji: "☀️", name: "태양", sign: SIGN_KR[sun], text: DB.sun[sun] || "당신은 타고난 전략가이자 개척자입니다. 사회적 성공을 향한 의지가 강합니다." },
+                { cat: "내면과 관계", emoji: "🌙", name: "달", sign: SIGN_KR[moon], text: DB.moon[moon] || "감정의 안식처를 중요시하며, 가까운 사람들에게만 드러내는 다정한 본성이 있습니다." },
+                { cat: "소통과 지성", emoji: "💬", name: "수성", sign: SIGN_KR[mercury], text: "두괄식 소통을 선호하며 핵심을 찌르는 통찰력을 업무에 발휘합니다." },
+                { cat: "가치관과 매력", emoji: "💖", name: "금성", sign: SIGN_KR[venus], text: "세련된 취향과 감각적인 소비를 즐기며, 대화가 잘 통하는 상대에게 매력을 느낍니다." },
+                { cat: "열정과 텐션", emoji: "🔥", name: "화성", sign: SIGN_KR[mars], text: "꽂힌 일은 밤을 새워서라도 끝내는 불도저 같은 추진력을 가졌습니다." },
+                { cat: "행운의 포인트", emoji: "🍀", name: "목성", sign: SIGN_KR[jupiter], text: "인복이 많아 위기의 순간에 나를 도와주는 귀인이 나타나는 복을 가졌습니다." },
+                { cat: "책임과 성숙", emoji: "🪐", name: "토성", sign: SIGN_KR[saturn], text: "사회적 책임감이 강하며, 성실한 노력 끝에 독보적인 전문가로 성장할 운명입니다." }
+            ];
+
+            let html = "";
+            data.forEach(item => {
+                html += `
+                <div class="result-card">
+                    <div class="card-header">
+                        <div class="planet-info">
+                            <span style="font-size:1.2em">${item.emoji}</span>
+                            <span class="planet-name">${item.name} (${item.cat})</span>
+                        </div>
+                        <span class="sign-tag">${item.sign}</span>
+                    </div>
+                    <p class="reading-body">${item.text}</p>
+                </div>`;
+            });
+            area.innerHTML = html;
+        }, 800);
+    }
+</script>
+
+</body>
+</html>
