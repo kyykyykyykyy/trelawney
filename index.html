@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Trelawney | 나의 우주 관측소 🔮</title>
-    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js" onload="engineLoaded()"></script>
+    <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
     <style>
         :root { --bg-color: #05070a; --card-bg: #0f141d; --accent: #7d5fff; --text-main: #e1e1e1; --text-dim: #a0a0a0; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -21,11 +21,8 @@
         input, select { background: #1a1f29; border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px 5px; border-radius: 12px; font-size: 0.95em; text-align: center; -webkit-appearance: none; width: 100%; font-family: inherit; }
         input:focus, select:focus { outline: none; border-color: var(--accent); }
         select { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 8px center; background-size: 0.9em; padding-right: 20px; }
-        
         button { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 700; width: 100%; font-size: 1.1em; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(125, 95, 255, 0.2); }
         button:active { transform: scale(0.98); }
-        button:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; box-shadow: none; } /* 비활성화 디자인 */
-
         .result-card { background: var(--card-bg); padding: 20px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.03); animation: slideUp 0.4s ease-out; }
         .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .planet-info { display: flex; align-items: center; gap: 8px; }
@@ -53,19 +50,12 @@
             <div class="input-field"><label>Hour (KST)</label><select id="hour"></select></div>
             <div class="input-field"><label>Minute</label><select id="minute"><option value="0">00분</option><option value="30">30분</option></select></div>
         </div>
-        <button id="submitBtn" onclick="observeUniverse()" disabled>별빛을 모으는 중...</button>
+        <button onclick="observeUniverse()">운명의 차트 관측하기</button>
     </div>
     <div id="displayArea"></div>
 </div>
 
 <script>
-    // 엔진 로드 완료 시 버튼 활성화
-    function engineLoaded() {
-        const btn = document.getElementById('submitBtn');
-        btn.innerText = "운명의 차트 관측하기";
-        btn.disabled = false;
-    }
-
     const hourSelect = document.getElementById('hour');
     for(let i = 0; i <= 23; i++) {
         let opt = document.createElement('option');
@@ -77,7 +67,7 @@
     const SIGNS_EN = ["aries", "taurus", "gemini", "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces"];
     const SIGN_KR = {"aries":"양자리","taurus":"황소자리","gemini":"쌍둥이자리","cancer":"게자리","leo":"사자자리","virgo":"처녀자리","libra":"천칭자리","scorpio":"전갈자리","sagittarius":"사수자리","capricorn":"염소자리","aquarius":"물병자리","pisces":"물고기자리"};
     
-    // 84개 풀 텍스트 데이터
+    // 84개 풀 데이터
     const DB = {
         sun: {
             aries: "사수나 선배가 닦아놓은 길보다는 제로베이스에서 프로젝트를 개척할 때 폼이 납니다. 추진력이 엄청나며 욱하는 성격만 다스리면 완벽한 리더 재질입니다.",
@@ -186,6 +176,12 @@
     }
 
     function observeUniverse() {
+        // 천체 엔진 로딩 안전장치
+        if (typeof Astronomy === 'undefined') {
+            alert("우주와 연결하는 중입니다! 1~2초만 기다렸다가 다시 눌러주세요 🚀");
+            return;
+        }
+
         const y = parseInt(document.getElementById('year').value);
         const m = parseInt(document.getElementById('month').value);
         const d = parseInt(document.getElementById('day').value);
@@ -195,7 +191,7 @@
         if(!y || !m || !d) return alert("날짜를 입력해주세요.");
 
         const area = document.getElementById('displayArea');
-        area.innerHTML = ""; // 기존 내용 비우기
+        area.innerHTML = ""; // 기존 결과 즉시 초기화
 
         const date = new Date(Date.UTC(y, m-1, d, h-9, min)); 
         
@@ -204,7 +200,7 @@
                 { id: "Sun", name: "태양", cat: "커리어와 자아", emoji: "☀️", dbKey: "sun" },
                 { id: "Moon", name: "달", cat: "내면과 관계", emoji: "🌙", dbKey: "moon" },
                 { id: "Mercury", name: "수성", cat: "소통과 지성", emoji: "💬", dbKey: "mercury" },
-                { id: "Venus", name: "금성", 경: "가치관과 매력", emoji: "💖", dbKey: "venus" },
+                { id: "Venus", name: "금성", cat: "가치관과 매력", emoji: "💖", dbKey: "venus" },
                 { id: "Mars", name: "화성", cat: "열정과 텐션", emoji: "🔥", dbKey: "mars" },
                 { id: "Jupiter", name: "목성", cat: "행운의 포인트", emoji: "🍀", dbKey: "jupiter" },
                 { id: "Saturn", name: "토성", cat: "책임과 성숙", emoji: "🪐", dbKey: "saturn" }
@@ -212,30 +208,29 @@
 
             let html = "";
             planets.forEach(p => {
-                // 딜레이 없이 즉시 계산 및 렌더링
                 const pos = Astronomy.EclipticLongitude(p.id, date);
                 const sign = getZodiacSign(pos);
                 const reading = (DB[p.dbKey] && DB[p.dbKey][sign]) || `${SIGN_KR[sign]}의 에너지가 관측되었습니다.`;
-
-                // cat 오타 방어 코드 (금성 부분)
-                const category = p.cat || "가치관과 매력";
 
                 html += `
                 <div class="result-card">
                     <div class="card-header">
                         <div class="planet-info">
                             <span style="font-size:1.3em">${p.emoji}</span>
-                            <span class="planet-name">${p.name} (${category})</span>
+                            <span class="planet-name">${p.name} (${p.cat})</span>
                         </div>
                         <span class="sign-tag">${SIGN_KR[sign]}</span>
                     </div>
                     <p class="reading-body">${reading}</p>
                 </div>`;
             });
+            
+            // 딜레이 없이 즉각적으로 화면에 뿌리기
             area.innerHTML = html;
+            
         } catch (e) {
             console.error(e);
-            area.innerHTML = "<p style='color: #ff6b6b;'>별자리 궤도를 계산하는 중 문제가 발생했습니다. 연/월/일 숫자를 다시 확인해 주세요.</p>";
+            area.innerHTML = "<p style='color: #ff6b6b; text-align: center; margin-top: 20px;'>별자리 궤도를 계산하는 중 문제가 발생했습니다. 날짜를 다시 확인해 주세요.</p>";
         }
     }
 </script>
